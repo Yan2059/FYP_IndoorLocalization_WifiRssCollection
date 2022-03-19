@@ -88,7 +88,7 @@ public class MainActivity extends AppCompatActivity{
 
 
     private void saveTextAsFile(){
-        Toast.makeText(this,"Trying to save",Toast.LENGTH_SHORT).show();
+        Toast.makeText(this,"Trying to save"+filecode,Toast.LENGTH_SHORT).show();
         String fileName = filecode+".csv";
         File file = new File(Environment.getExternalStorageDirectory().toString()+"/download",fileName); //save to download directory of the phone in CSV format
         try {
