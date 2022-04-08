@@ -76,7 +76,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:layout_marginTop="10dp"
-            android:text="Z Coordinate"
+            android:text="Z Coordinate or floor"
             android:textSize="15dp"
             android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -87,6 +87,26 @@
 
         <EditText
             android:id="@+id/z_cor"
+            android:layout_width="150dp"
+            android:layout_height="45dp"
+            android:layout_gravity="center_horizontal"
+            android:textSize="15dp" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="10dp"
+            android:text="Radio measurement per point"
+            android:textSize="15dp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.292" />
+
+        <EditText
+            android:id="@+id/measure_per_point"
             android:layout_width="150dp"
             android:layout_height="45dp"
             android:layout_gravity="center_horizontal"

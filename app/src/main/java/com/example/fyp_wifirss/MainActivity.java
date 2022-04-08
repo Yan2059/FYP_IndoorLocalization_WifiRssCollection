@@ -15,6 +15,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Environment;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 
@@ -51,7 +52,7 @@ public class MainActivity extends AppCompatActivity{
     //initialize the sensors and text fields, buttons
     TextView string;
     Button b_save;
-    EditText x_cor, y_cor, z_cor;
+    EditText x_cor, y_cor, z_cor,mpp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,6 +64,7 @@ public class MainActivity extends AppCompatActivity{
         x_cor = (EditText) findViewById(R.id.x_cor);
         y_cor = (EditText) findViewById(R.id.y_cor);
         z_cor = (EditText) findViewById(R.id.z_cor);
+        mpp = (EditText) findViewById(R.id.measure_per_point);
 
         //setting of wifi manager to scan wifi
         wm = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
@@ -131,7 +133,6 @@ public class MainActivity extends AppCompatActivity{
             }
             Log.d(TAG, "Wifi Scanned");
             string.setText(setText);
-            saveTextAsFile();
         };
     };
 
@@ -158,24 +159,36 @@ public class MainActivity extends AppCompatActivity{
     }
     public void b_onClick(View view) {
         //Create filename using current timestamp
-        filecode = System.currentTimeMillis() / 1000L+"";
-        //add coordinates in first three row of the CSV
-        sb.append(x_cor.getText().toString());
-        sb.append('\n');
-        sb.append(y_cor.getText().toString());
-        sb.append('\n');
-        sb.append(z_cor.getText().toString());
-        sb.append('\n');
-        //add coordinates in first three row of the textView
-        setText.append(x_cor.getText().toString());
-        setText.append(System.getProperty("line.separator"));
-        setText.append(y_cor.getText().toString());
-        setText.append(System.getProperty("line.separator"));
-        setText.append(z_cor.getText().toString());
-        setText.append(System.getProperty("line.separator"));
-        //hide keyboard after the button is pressed
-        InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-        scanWifi();
+        int count = Integer.parseInt(mpp.getText().toString());
+        for(int i=0; i<count;i++){
+            final Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    filecode = System.nanoTime()+"";
+                    //add coordinates in first three row of the CSV
+                    sb.append(x_cor.getText().toString());
+                    sb.append('\n');
+                    sb.append(y_cor.getText().toString());
+                    sb.append('\n');
+                    sb.append(z_cor.getText().toString());
+                    sb.append('\n');
+                    //add coordinates in first three row of the textView
+                    setText.append(x_cor.getText().toString());
+                    setText.append(System.getProperty("line.separator"));
+                    setText.append(y_cor.getText().toString());
+                    setText.append(System.getProperty("line.separator"));
+                    setText.append(z_cor.getText().toString());
+                    setText.append(System.getProperty("line.separator"));
+                    //hide keyboard after the button is pressed
+                    InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+                    scanWifi();
+                    saveTextAsFile();
+                    filecode = System.nanoTime()+"";
+                }
+            }, 2000);
+        }
+        Toast.makeText(this,"Scan completed!",Toast.LENGTH_SHORT).show();
     }
 }
