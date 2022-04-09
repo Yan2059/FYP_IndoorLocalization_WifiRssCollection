@@ -44,15 +44,17 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity{
     private static final String TAG = "sensor";
     private WifiManager wm;
-    private List<ScanResult> results;
+    private List<ScanResult> results;   //temp storage of WiFi records created by wm
+    private int count = 5;
     StringBuilder sb = new StringBuilder(); //save data for CSV saving
     StringBuilder setText = new StringBuilder(); //save data for textView display
-    String filecode; //filecode is the file name of the file, will be generated when the button is pressed
+    String filecode; //filecode is the file name of the file, will be generated when the saveTextAsFile was executed
 
     //initialize the sensors and text fields, buttons
     TextView string;
     Button b_save;
-    EditText x_cor, y_cor, z_cor,mpp;
+    EditText x_cor, y_cor, z_cor;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,7 +66,6 @@ public class MainActivity extends AppCompatActivity{
         x_cor = (EditText) findViewById(R.id.x_cor);
         y_cor = (EditText) findViewById(R.id.y_cor);
         z_cor = (EditText) findViewById(R.id.z_cor);
-        mpp = (EditText) findViewById(R.id.measure_per_point);
 
         //setting of wifi manager to scan wifi
         wm = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
@@ -90,14 +91,14 @@ public class MainActivity extends AppCompatActivity{
 
 
     private void saveTextAsFile(){
-        Toast.makeText(this,"Trying to save"+filecode,Toast.LENGTH_SHORT).show();
+        //Create filename using current timestamp
+        filecode = System.nanoTime()+"";
         String fileName = filecode+".csv";
         File file = new File(Environment.getExternalStorageDirectory().toString()+"/download",fileName); //save to download directory of the phone in CSV format
         try {
             FileOutputStream fos = new FileOutputStream(file);
             fos.write(sb.toString().getBytes());
             fos.close();
-            Toast.makeText(this,"Saved",Toast.LENGTH_SHORT).show();
             Log.d(TAG, "File Saved");
             setText.setLength(0);
             sb.setLength(0);
@@ -121,7 +122,25 @@ public class MainActivity extends AppCompatActivity{
         @Override
         public void onReceive(Context context, Intent intent) {
             results = wm.getScanResults();
-            Log.i(TAG, "broken wifi");
+            //add coordinates in first three row of the CSV
+            sb.append(x_cor.getText().toString());
+            sb.append('\n');
+            sb.append(y_cor.getText().toString());
+            sb.append('\n');
+            sb.append(z_cor.getText().toString());
+            sb.append('\n');
+            //show instructive information
+            setText.append("This is the  "+(6-count)+" scan");
+            setText.append(System.getProperty("line.separator"));
+            setText.append("This and the above line will NOT be included in csv");
+            setText.append(System.getProperty("line.separator"));
+            //add coordinates in the textView
+            setText.append(x_cor.getText().toString());
+            setText.append(System.getProperty("line.separator"));
+            setText.append(y_cor.getText().toString());
+            setText.append(System.getProperty("line.separator"));
+            setText.append(z_cor.getText().toString());
+            setText.append(System.getProperty("line.separator"));
             unregisterReceiver(this);
             for(ScanResult scanResult : results){
                 //append text for CSV saving
@@ -131,64 +150,34 @@ public class MainActivity extends AppCompatActivity{
                 setText.append(scanResult.BSSID + "," + scanResult.level);
                 setText.append(System.getProperty("line.separator"));
             }
-            Log.d(TAG, "Wifi Scanned");
             string.setText(setText);
+            Log.d(TAG, "Wifi Scanned");
+            saveTextAsFile();
+            if(--count>0){
+                //recursive for next radio measurement if not finished
+                scanWifi();
+            }
+            else{
+                //show alert message if the scan completed
+                end();
+            }
+
         };
     };
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
+    public void end(){
+        Toast.makeText(this,"Scan completed!",Toast.LENGTH_SHORT).show();
     }
     public void b_onClick(View view) {
-        //Create filename using current timestamp
-        int count = Integer.parseInt(mpp.getText().toString());
-        for(int i=0; i<count;i++){
-            final Handler handler = new Handler();
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    filecode = System.nanoTime()+"";
-                    //add coordinates in first three row of the CSV
-                    sb.append(x_cor.getText().toString());
-                    sb.append('\n');
-                    sb.append(y_cor.getText().toString());
-                    sb.append('\n');
-                    sb.append(z_cor.getText().toString());
-                    sb.append('\n');
-                    //add coordinates in first three row of the textView
-                    setText.append(x_cor.getText().toString());
-                    setText.append(System.getProperty("line.separator"));
-                    setText.append(y_cor.getText().toString());
-                    setText.append(System.getProperty("line.separator"));
-                    setText.append(z_cor.getText().toString());
-                    setText.append(System.getProperty("line.separator"));
-                    //hide keyboard after the button is pressed
-                    InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-                    imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-                    scanWifi();
-                    saveTextAsFile();
-                    filecode = System.nanoTime()+"";
-                }
-            }, 2000);
-        }
-        Toast.makeText(this,"Scan completed!",Toast.LENGTH_SHORT).show();
+                count=5;
+                //hide keyboard after the button is pressed
+                InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+                scanWifi();
+                filecode = System.nanoTime()+"";
+
+
+
     }
 }
